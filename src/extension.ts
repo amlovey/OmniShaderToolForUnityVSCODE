@@ -4,6 +4,7 @@ import { OSGoToDefinitionProvider } from './OmniShader/OSGoToDefinitionProvider'
 import { SHDAR_LANGUAGE_ID, UPDATE_TIME_DELAY } from './OmniShader/Constants';
 import { OSHoverInformationProvider } from './OmniShader/OSHoverInfomationProvider';
 import { updateProgram } from './OmniShader/SLSConnection';
+import { OSCompletionProvider } from './OmniShader/OSCompletionProvider';
 
 export function activate(context: vscode.ExtensionContext) {
 	let eidtTimeout: any;
@@ -26,9 +27,13 @@ export function activate(context: vscode.ExtensionContext) {
 	let hoverProvider = new OSHoverInformationProvider();
 	let hoverProviderDispose = vscode.languages.registerHoverProvider(SHDAR_LANGUAGE_ID, hoverProvider);
 
+	let completionProvider = new OSCompletionProvider();
+	let completionProviderDispose = vscode.languages.registerCompletionItemProvider(SHDAR_LANGUAGE_ID, completionProvider);
+
 	context.subscriptions.push(symbolProviderDispose);
 	context.subscriptions.push(definitionProviderDispose);
 	context.subscriptions.push(hoverProviderDispose);
+	context.subscriptions.push(completionProviderDispose);
 }
 
 export function deactivate() {}

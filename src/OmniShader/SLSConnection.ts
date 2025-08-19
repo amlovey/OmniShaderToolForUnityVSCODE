@@ -52,6 +52,23 @@ export function osKindToSymbolKind(osKind: string): vscode.SymbolKind {
     return vscode.SymbolKind.Null;
 }
 
+export function osKindToCompletionKind(osKind: string): vscode.CompletionItemKind {
+    switch (osKind) {
+        case "Class": return vscode.CompletionItemKind.Class;
+        case "Interface": return vscode.CompletionItemKind.Interface;
+        case "Field": return vscode.CompletionItemKind.Field;
+        case "Function": return vscode.CompletionItemKind.Function;
+        case "Keyword": return vscode.CompletionItemKind.Keyword;
+        case "Method": return vscode.CompletionItemKind.Method;
+        case "Property": return vscode.CompletionItemKind.Property;
+        case "Struct": return vscode.CompletionItemKind.Struct;
+        case "Value": return vscode.CompletionItemKind.Constant;
+        case "Variable": return vscode.CompletionItemKind.Variable;
+    }
+
+    return vscode.CompletionItemKind.Keyword;
+}
+
 export function osLocationToLocation(location: OSLocation) : vscode.Location {
     return new vscode.Location(vscode.Uri.file(location.path), osLocationToRange(location));
 }
@@ -119,6 +136,22 @@ export async function fetchHover(document: vscode.TextDocument, pos: vscode.Posi
     }
 
     return Promise.resolve(JSON.parse(text) as OSHoverInfo);
+}
+
+export async function fetchCompletion(document: vscode.TextDocument, pos: vscode.Position, triggerCharacter: "") : Promise<OSCompletion[]> {
+    let url = `${API_HOST}/completion`;
+    let body = new FormData();
+    body.append("path", document.uri.fsPath);
+    body.append("row", pos.line);
+    body.append("column", pos.character);
+    body.append("trigger", triggerCharacter);
+
+    let response = await fetch(url, {
+        method: "POST",
+        body: body
+    });
+
+    return await response.json() as OSCompletion[];
 }
 
 export function updateProgram(document: vscode.TextDocument) {
