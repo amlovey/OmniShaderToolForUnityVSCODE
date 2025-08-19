@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-
+import { API_HOST } from './Constants';
 
 export interface OSHoverInfo {
     value: string,
@@ -64,12 +64,11 @@ export function osLocationToRange(osLocation: OSLocation) {
     return new vscode.Range(osPointToPosition(osLocation.start), osPointToPosition(osLocation.end));
 }
 
-const API_HOST = "http://127.0.0.1:17892";
 
 export async function fetchDocumentSymbols(document: vscode.TextDocument): Promise<OSSymbol[]> {
     let url = `${API_HOST}/symbol`;
 
-    let body = new URLSearchParams();
+    let body = new FormData();
     body.append("path", document.uri.fsPath);
 
     let response = await fetch(url, {
@@ -83,7 +82,7 @@ export async function fetchDocumentSymbols(document: vscode.TextDocument): Promi
 export async function fetchDefition(document: vscode.TextDocument, pos: vscode.Position) : Promise<OSLocation> {
     let url = `${API_HOST}/definition`;
     
-    let body = new URLSearchParams();
+    let body = new FormData();
     body.append("path", document.uri.path);
     body.append("row", pos.line.toString());
     body.append("column", pos.character.toString());
@@ -103,7 +102,8 @@ export async function fetchDefition(document: vscode.TextDocument, pos: vscode.P
 
 export async function fetchHover(document: vscode.TextDocument, pos: vscode.Position) : Promise<OSHoverInfo> {
     let url = `${API_HOST}/hover`;
-    let body = new URLSearchParams();
+
+    let body = new FormData();
     body.append("path", document.uri.path);
     body.append("row", pos.line.toString());
     body.append("column", pos.character.toString());
@@ -119,4 +119,16 @@ export async function fetchHover(document: vscode.TextDocument, pos: vscode.Posi
     }
 
     return Promise.resolve(JSON.parse(text) as OSHoverInfo);
+}
+
+export function updateProgram(document: vscode.TextDocument) {
+    let url = `${API_HOST}/update`;
+    let body = new FormData();
+    body.append("path", document.uri.fsPath);
+    body.append("code", document.getText());
+
+    fetch(url, {
+        method: "POST",
+        body: body
+    });
 }
