@@ -21,9 +21,17 @@
 					".cginc",
 					".compute",
 					".hlsl",
-					".raytrace"
+					".raytrace",
+          ".std"
 				]
 			}
+    ],
+    "grammars": [
+      {
+        "language": "UnityShader",
+        "scopeName": "source.shader",
+        "path": "./syntaxes/UnityShader.tmLanguage.json"
+      }
     ]
   },
   
