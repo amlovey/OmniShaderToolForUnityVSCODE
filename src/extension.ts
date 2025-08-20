@@ -3,20 +3,20 @@ import { OSDocumentSymbolsProvider } from './OmniShader/OSDocumentSymbolsProvide
 import { OSGoToDefinitionProvider } from './OmniShader/OSGoToDefinitionProvider';
 import { SHDAR_LANGUAGE_ID, UPDATE_TIME_DELAY } from './OmniShader/Constants';
 import { OSHoverInformationProvider } from './OmniShader/OSHoverInfomationProvider';
-import { updateProgram } from './OmniShader/SLSConnection';
+// import { updateProgram } from './OmniShader/SLSConnection';
 import { OSCompletionProvider } from './OmniShader/OSCompletionProvider';
 
 export function activate(context: vscode.ExtensionContext) {
-	let eidtTimeout: any;
-	vscode.workspace.onDidChangeTextDocument(evt => {
-		if (eidtTimeout) {
-			clearTimeout(eidtTimeout);
-		}
+	// let eidtTimeout: any;
+	// vscode.workspace.onDidChangeTextDocument(evt => {
+	// 	if (eidtTimeout) {
+	// 		clearTimeout(eidtTimeout);
+	// 	}
 
-		eidtTimeout = setTimeout(() => {
-			updateProgram(evt.document);
-		}, UPDATE_TIME_DELAY);
-	});
+	// 	eidtTimeout = setTimeout(() => {
+	// 		updateProgram(evt.document);
+	// 	}, UPDATE_TIME_DELAY);
+	// });
 
 	let symbolProvider = new OSDocumentSymbolsProvider();
 	let symbolProviderDispose = vscode.languages.registerDocumentSymbolProvider(SHDAR_LANGUAGE_ID, symbolProvider);

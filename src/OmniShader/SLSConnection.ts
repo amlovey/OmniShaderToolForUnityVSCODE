@@ -138,7 +138,7 @@ export async function fetchHover(document: vscode.TextDocument, pos: vscode.Posi
     return Promise.resolve(JSON.parse(text) as OSHoverInfo);
 }
 
-export async function fetchCompletion(document: vscode.TextDocument, pos: vscode.Position, triggerCharacter: "") : Promise<OSCompletion[]> {
+export async function fetchCompletion(document: vscode.TextDocument, pos: vscode.Position, triggerCharacter: string = "") : Promise<OSCompletion[]> {
     let url = `${API_HOST}/completion`;
     let body = new FormData();
     body.append("path", document.uri.fsPath);
