@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let hoverProviderDispose = vscode.languages.registerHoverProvider(SHDAR_LANGUAGE_ID, hoverProvider);
 
 	let completionProvider = new OSCompletionProvider();
-	let triggerCharacters = ['.', '\"', '(', ':'];
+	let triggerCharacters = ['.', ':', '"', '\\', '/'];
 	let completionProviderDispose = vscode.languages.registerCompletionItemProvider(SHDAR_LANGUAGE_ID, completionProvider, ...triggerCharacters);
 
 	context.subscriptions.push(symbolProviderDispose);
