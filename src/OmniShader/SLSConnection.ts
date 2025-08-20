@@ -154,7 +154,7 @@ export async function fetchCompletion(document: vscode.TextDocument, pos: vscode
     return await response.json() as OSCompletion[];
 }
 
-export function updateProgram(document: vscode.TextDocument) {
+export function updateProgramToServer(document: vscode.TextDocument) {
     let url = `${API_HOST}/update`;
     let body = new FormData();
     body.append("path", document.uri.fsPath);
