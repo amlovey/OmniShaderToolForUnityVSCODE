@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import { API_HOST } from './Constants';
 
+export var API_Port = {
+    value: "17982"
+};
+
 export interface OSHoverInfo {
     value: string,
     start?: OSPoint,
@@ -83,12 +87,10 @@ export function osLocationToRange(osLocation: OSLocation) {
 
 
 export async function fetchDocumentSymbols(document: vscode.TextDocument): Promise<OSSymbol[]> {
-    let url = `${API_HOST}/symbol`;
-
     let body = new FormData();
     body.append("path", document.uri.fsPath);
 
-    let response = await fetch(url, {
+    let response = await fetch(getAPI("symbol"), {
         method: "POST",
         body: body
     });
@@ -97,14 +99,12 @@ export async function fetchDocumentSymbols(document: vscode.TextDocument): Promi
 }
 
 export async function fetchDefition(document: vscode.TextDocument, pos: vscode.Position) : Promise<OSLocation> {
-    let url = `${API_HOST}/definition`;
-    
     let body = new FormData();
     body.append("path", document.uri.path);
     body.append("row", pos.line.toString());
     body.append("column", pos.character.toString());
 
-    let response = await fetch(url, {
+    let response = await fetch(getAPI("definition"), {
         method: "POST",
         body: body
     });
@@ -118,14 +118,12 @@ export async function fetchDefition(document: vscode.TextDocument, pos: vscode.P
 }
 
 export async function fetchHover(document: vscode.TextDocument, pos: vscode.Position) : Promise<OSHoverInfo> {
-    let url = `${API_HOST}/hover`;
-
     let body = new FormData();
     body.append("path", document.uri.path);
     body.append("row", pos.line.toString());
     body.append("column", pos.character.toString());
 
-    let response = await fetch(url, {
+    let response = await fetch(getAPI("hover"), {
         method: "POST",
         body: body
     });
@@ -139,14 +137,13 @@ export async function fetchHover(document: vscode.TextDocument, pos: vscode.Posi
 }
 
 export async function fetchCompletion(document: vscode.TextDocument, pos: vscode.Position, triggerCharacter: string = "") : Promise<OSCompletion[]> {
-    let url = `${API_HOST}/completion`;
     let body = new FormData();
     body.append("path", document.uri.fsPath);
     body.append("row", pos.line);
     body.append("column", pos.character);
     body.append("trigger", triggerCharacter);
 
-    let response = await fetch(url, {
+    let response = await fetch(getAPI("completion"), {
         method: "POST",
         body: body
     });
@@ -155,7 +152,7 @@ export async function fetchCompletion(document: vscode.TextDocument, pos: vscode
 }
 
 export function updateProgramToServer(document: vscode.TextDocument) {
-    let url = `${API_HOST}/update`;
+    let url = getAPI("update");
     let body = new FormData();
     body.append("path", document.uri.fsPath);
     body.append("code", document.getText());
@@ -164,4 +161,8 @@ export function updateProgramToServer(document: vscode.TextDocument) {
         method: "POST",
         body: body
     });
+}
+
+function getAPI(api: string) {
+    return `${API_HOST}:${API_Port.value}/${api}`;
 }
