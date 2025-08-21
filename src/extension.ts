@@ -4,12 +4,10 @@ import { OSGoToDefinitionProvider } from './OmniShader/OSGoToDefinitionProvider'
 import { API_HOST, SHDAR_LANGUAGE_ID } from './OmniShader/Constants';
 import { OSHoverInformationProvider } from './OmniShader/OSHoverInfomationProvider';
 import { OSCompletionProvider } from './OmniShader/OSCompletionProvider';
-import { ChildProcess, spawn } from 'child_process';
+import { spawn } from 'child_process';
 import path from 'path';
-import fs, { existsSync, mkdirSync } from 'fs';
+import fs, { existsSync, mkdirSync, rmSync } from 'fs';
 import { API_Port } from './OmniShader/SLSConnection';
-
-var slsProcess: ChildProcess;
 
 export function activate(context: vscode.ExtensionContext) {
 	startLanguageServer(context);
@@ -44,8 +42,7 @@ function startLanguageServer(context: vscode.ExtensionContext) {
 	let workingPath = path.join(context.extensionPath, "sls");
 	let slsExe = path.join(workingPath, "sls");
 
-	console.log(API_Port.value);
-	slsProcess = spawn(slsExe, [API_Port.value, workspace], { stdio: 'inherit', cwd: workingPath });
+	let slsProcess = spawn(slsExe, [API_Port.value, workspace], { stdio: 'inherit', cwd: workingPath });
 	slsProcess.on("data", console.log);
 	slsProcess.on("error", console.log);
 }
@@ -74,18 +71,16 @@ function generatePortAndCleanUnused(): string {
 	}
 
 	// clean the port
-	ports.forEach(async p => {
+	ports.forEach(p => {
 		let portFile = getPortFile(p);
-		let url = `${API_HOST}:${API_Port}`;
-		let response = await fetch(url);
-		let result = await response.text();
-		if (result === "Ok") {
+		let url = `${API_HOST}:${API_Port.value}`;
+		fetch(url).catch(error => {
 			try {
-				fs.rmSync(portFile);
+				rmSync(portFile);
 			} catch {
-
+				
 			}
-		}
+		});
 	});
 
 	return newPort.toString();
