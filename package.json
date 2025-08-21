@@ -32,6 +32,12 @@
         "scopeName": "source.shader",
         "path": "./syntaxes/UnityShader.tmLanguage.json"
       }
+    ],
+    "snippets": [
+      {
+        "language": "UnityShader",
+        "path": "./snippets/snippets.json"
+      }
     ]
   },
   
