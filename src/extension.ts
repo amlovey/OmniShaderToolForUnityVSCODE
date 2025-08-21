@@ -4,8 +4,15 @@ import { OSGoToDefinitionProvider } from './OmniShader/OSGoToDefinitionProvider'
 import { SHDAR_LANGUAGE_ID } from './OmniShader/Constants';
 import { OSHoverInformationProvider } from './OmniShader/OSHoverInfomationProvider';
 import { OSCompletionProvider } from './OmniShader/OSCompletionProvider';
+import { ChildProcess, spawn } from 'child_process';
+import { launchSLS } from './OmniShader/SLSConnection';
+import path from 'path';
+
+var slsProcess: ChildProcess;
 
 export function activate(context: vscode.ExtensionContext) {
+	startLanguageServer(context);
+
 	let symbolProvider = new OSDocumentSymbolsProvider();
 	let symbolProviderDispose = vscode.languages.registerDocumentSymbolProvider(SHDAR_LANGUAGE_ID, symbolProvider);
 
@@ -25,4 +32,25 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(completionProviderDispose);
 }
 
-export function deactivate() {}
+function startLanguageServer(context: vscode.ExtensionContext) {
+	
+	if (slsProcess) {
+		return;
+	}
+
+	let workspace = "";
+	let port = "17982";
+	let workspaceFolder = vscode.workspace.workspaceFolders;
+	if (workspaceFolder && workspaceFolder.length > 0) {
+		workspace = workspaceFolder[0].uri.fsPath;
+	}
+
+	let workingPath = path.join(context.extensionPath, "sls");
+	let slsExe = path.join(workingPath, "sls");
+
+	slsProcess = spawn(slsExe, [port, workspace], { stdio: 'inherit', cwd: workingPath});
+	slsProcess.on("data", console.log);
+	slsProcess.on("error", console.log);
+}
+
+export function deactivate() { }
