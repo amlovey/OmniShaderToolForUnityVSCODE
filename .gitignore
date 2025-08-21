@@ -136,3 +136,5 @@ dist
 .pnp.*
 *.vsix
 src/.DS_Store
+/sls
+.DS_Store
