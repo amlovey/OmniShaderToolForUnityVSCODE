@@ -10,7 +10,7 @@ import fs, { existsSync, mkdirSync, rmSync } from 'fs';
 import { API_Port } from './OmniShader/SLSConnection';
 
 export function activate(context: vscode.ExtensionContext) {
-	startLanguageServer(context);
+	// startLanguageServer(context);
 
 	let symbolProvider = new OSDocumentSymbolsProvider();
 	let symbolProviderDispose = vscode.languages.registerDocumentSymbolProvider(SHDAR_LANGUAGE_ID, symbolProvider);
@@ -29,6 +29,8 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(definitionProviderDispose);
 	context.subscriptions.push(hoverProviderDispose);
 	context.subscriptions.push(completionProviderDispose);
+
+	vscode.workspace.onDidChangeTextDocument(handleRealtimeCommentInput);
 }
 
 function startLanguageServer(context: vscode.ExtensionContext) {
@@ -78,7 +80,7 @@ function generatePortAndCleanUnused(): string {
 			try {
 				rmSync(portFile);
 			} catch {
-				
+
 			}
 		});
 	});
@@ -87,3 +89,33 @@ function generatePortAndCleanUnused(): string {
 }
 
 export function deactivate() { }
+
+function handleRealtimeCommentInput(handleChange: any) {
+    if (!handleChange || !handleChange.contentChanges || handleChange.contentChanges.length != 1) {
+        return;
+    }
+
+    let changeText: string = handleChange.contentChanges[0].text;
+    if (changeText.startsWith("\n") || changeText.startsWith("\r\n")) {
+        let changeRange: vscode.Range = handleChange.contentChanges[0].range;
+        let document: vscode.TextDocument = handleChange.document;
+        let oldLine = document.lineAt(changeRange.start);
+        var oldLineText = oldLine.text.trim();
+        if (oldLineText.startsWith("///")) {
+            let newLineNumber = oldLine.lineNumber + 1;
+            var newline = document.lineAt(newLineNumber);
+            var insertPosition = new vscode.Position(newline.lineNumber, newline.firstNonWhitespaceCharacterIndex);
+            var editor = vscode.window.activeTextEditor;
+            if (editor) {
+                editor.edit(builder => {
+                    builder.insert(insertPosition, "/// ");
+                }).then(()=> {
+                    let newPosition = new vscode.Position(newLineNumber, insertPosition.character + 4); 
+					if (editor) {
+						editor.selection = new vscode.Selection(newPosition, newPosition);
+					}
+                });
+            }
+        }
+    }
+}

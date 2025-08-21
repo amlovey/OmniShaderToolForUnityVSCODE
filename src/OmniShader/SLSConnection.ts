@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { API_HOST } from './Constants';
 
 export var API_Port = {
-    value: "17982"
+    value: "17892"
 };
 
 export interface OSHoverInfo {
