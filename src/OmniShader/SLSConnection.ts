@@ -73,7 +73,7 @@ export function osKindToCompletionKind(osKind: string): vscode.CompletionItemKin
     return vscode.CompletionItemKind.Keyword;
 }
 
-export function osLocationToLocation(location: OSLocation) : vscode.Location {
+export function osLocationToLocation(location: OSLocation): vscode.Location {
     return new vscode.Location(vscode.Uri.file(location.path), osLocationToRange(location));
 }
 
@@ -98,7 +98,7 @@ export async function fetchDocumentSymbols(document: vscode.TextDocument): Promi
     return await response.json() as OSSymbol[];
 }
 
-export async function fetchDefition(document: vscode.TextDocument, pos: vscode.Position) : Promise<OSLocation> {
+export async function fetchDefition(document: vscode.TextDocument, pos: vscode.Position): Promise<OSLocation> {
     let body = new FormData();
     body.append("path", document.uri.path);
     body.append("row", pos.line.toString());
@@ -117,7 +117,7 @@ export async function fetchDefition(document: vscode.TextDocument, pos: vscode.P
     return Promise.resolve(JSON.parse(text) as OSLocation);
 }
 
-export async function fetchHover(document: vscode.TextDocument, pos: vscode.Position) : Promise<OSHoverInfo> {
+export async function fetchHover(document: vscode.TextDocument, pos: vscode.Position): Promise<OSHoverInfo> {
     let body = new FormData();
     body.append("path", document.uri.path);
     body.append("row", pos.line.toString());
@@ -136,7 +136,7 @@ export async function fetchHover(document: vscode.TextDocument, pos: vscode.Posi
     return Promise.resolve(JSON.parse(text) as OSHoverInfo);
 }
 
-export async function fetchCompletion(document: vscode.TextDocument, pos: vscode.Position, triggerCharacter: string = "") : Promise<OSCompletion[]> {
+export async function fetchCompletion(document: vscode.TextDocument, pos: vscode.Position, triggerCharacter: string = ""): Promise<OSCompletion[]> {
     let body = new FormData();
     body.append("path", document.uri.fsPath);
     body.append("row", pos.line);
@@ -151,6 +151,21 @@ export async function fetchCompletion(document: vscode.TextDocument, pos: vscode
     return await response.json() as OSCompletion[];
 }
 
+export async function fetchReferences(document: vscode.TextDocument, pos: vscode.Position): Promise<OSLocation[]> {
+    let body = new FormData();
+    body.append("path", document.uri.fsPath);
+    body.append("row", pos.line);
+    body.append("column", pos.character);
+
+    let response = await fetch(getAPI("reference"), {
+        method: "POST",
+        body: body
+    })
+
+    return await response.json() as OSLocation[];
+}
+
+
 export function updateProgramToServer(document: vscode.TextDocument) {
     let url = getAPI("update");
     let body = new FormData();
@@ -162,6 +177,7 @@ export function updateProgramToServer(document: vscode.TextDocument) {
         body: body
     });
 }
+
 
 function getAPI(api: string) {
     return `${API_HOST}:${API_Port.value}/${api}`;

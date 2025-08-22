@@ -8,6 +8,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 import fs, { existsSync, mkdirSync, rmSync } from 'fs';
 import { API_Port } from './OmniShader/SLSConnection';
+import { OSFindRenferencesProvider } from './OmniShader/OSFindReferencesProvider';
 
 export function activate(context: vscode.ExtensionContext) {
 	// startLanguageServer(context);
@@ -25,10 +26,14 @@ export function activate(context: vscode.ExtensionContext) {
 	let triggerCharacters = ['.', ':', '"', '\\', '/'];
 	let completionProviderDispose = vscode.languages.registerCompletionItemProvider(SHDAR_LANGUAGE_ID, completionProvider, ...triggerCharacters);
 
+	let referenceProvider = new OSFindRenferencesProvider();
+	let referenceProvoideDispose = vscode.languages.registerReferenceProvider(SHDAR_LANGUAGE_ID, referenceProvider);
+
 	context.subscriptions.push(symbolProviderDispose);
 	context.subscriptions.push(definitionProviderDispose);
 	context.subscriptions.push(hoverProviderDispose);
 	context.subscriptions.push(completionProviderDispose);
+	context.subscriptions.push(referenceProvoideDispose);
 
 	vscode.workspace.onDidChangeTextDocument(handleRealtimeCommentInput);
 }
