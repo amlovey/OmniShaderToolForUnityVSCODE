@@ -9,6 +9,7 @@ import path from 'path';
 import fs, { existsSync, mkdirSync, rmSync } from 'fs';
 import { API_Port } from './OmniShader/SLSConnection';
 import { OSFindRenferencesProvider } from './OmniShader/OSFindReferencesProvider';
+import { OSRenameProvider } from './OmniShader/OSRenameProvider';
 
 export function activate(context: vscode.ExtensionContext) {
 	// startLanguageServer(context);
@@ -29,11 +30,15 @@ export function activate(context: vscode.ExtensionContext) {
 	let referenceProvider = new OSFindRenferencesProvider();
 	let referenceProvoideDispose = vscode.languages.registerReferenceProvider(SHDAR_LANGUAGE_ID, referenceProvider);
 
+	let renameProvider = new OSRenameProvider();
+	let renameProviderDispose = vscode.languages.registerRenameProvider(SHDAR_LANGUAGE_ID, renameProvider);
+
 	context.subscriptions.push(symbolProviderDispose);
 	context.subscriptions.push(definitionProviderDispose);
 	context.subscriptions.push(hoverProviderDispose);
 	context.subscriptions.push(completionProviderDispose);
 	context.subscriptions.push(referenceProvoideDispose);
+	context.subscriptions.push(renameProviderDispose);
 
 	vscode.workspace.onDidChangeTextDocument(handleRealtimeCommentInput);
 }

@@ -160,11 +160,24 @@ export async function fetchReferences(document: vscode.TextDocument, pos: vscode
     let response = await fetch(getAPI("reference"), {
         method: "POST",
         body: body
-    })
+    });
 
     return await response.json() as OSLocation[];
 }
 
+export async function fetchRename(document: vscode.TextDocument, pos: vscode.Position): Promise<OSLocation[]> {
+    let body = new FormData();
+    body.append("path", document.uri.fsPath);
+    body.append("row", pos.line);
+    body.append("column", pos.character);
+
+    let response = await fetch(getAPI("rename"), {
+        method: "POST",
+        body: body
+    });
+
+    return await response.json() as OSLocation[];
+}
 
 export function updateProgramToServer(document: vscode.TextDocument) {
     let url = getAPI("update");
