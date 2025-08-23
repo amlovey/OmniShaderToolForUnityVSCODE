@@ -38,6 +38,23 @@ export interface OSPoint {
     column: number,
 }
 
+export interface OSParameterInformation {
+    label: string,
+    doc: string,
+}
+
+export interface OSSignatureInformation {
+    label: string,
+    doc: string,
+    active_parameter: number,
+    parameters: OSParameterInformation[],
+}
+
+export interface OSSignatureHelp {
+    signatures: OSSignatureInformation[],
+    active_signature: number,
+    active_parameter: number,
+}
 
 export function osKindToSymbolKind(osKind: string): vscode.SymbolKind {
     switch (osKind) {
@@ -179,18 +196,32 @@ export async function fetchRename(document: vscode.TextDocument, pos: vscode.Pos
     return await response.json() as OSLocation[];
 }
 
+export async function fetchSignature(document: vscode.TextDocument, pos: vscode.Position, trigger: string): Promise<OSSignatureHelp> {
+    let body = new FormData();
+    body.append("path", document.uri.fsPath);
+    body.append("row", pos.line);
+    body.append("column", pos.character);
+    body.append("trigger", trigger);
+
+    let response = await fetch(getAPI("signature"), {
+        method: "POST",
+        body: body
+    });
+
+    return await response.json() as OSSignatureHelp;
+}
+
 export function updateProgramToServer(document: vscode.TextDocument) {
     let url = getAPI("update");
     let body = new FormData();
     body.append("path", document.uri.fsPath);
     body.append("code", document.getText());
 
-    fetch(url, {
+    return fetch(url, {
         method: "POST",
         body: body
     });
 }
-
 
 function getAPI(api: string) {
     return `${API_HOST}:${API_Port.value}/${api}`;
