@@ -228,11 +228,12 @@ export async function formatProgram(document: vscode.TextDocument): Promise<Form
     return await response.json() as FormatData;
 }
 
-export function updateProgramToServer(document: vscode.TextDocument) {
+export function updateProgramToServer(document: vscode.TextDocument, toRemove: boolean = false) {
     let url = getAPI("update");
     let body = new FormData();
     body.append("path", document.uri.fsPath);
     body.append("code", document.getText());
+    body.append("remove", toRemove);
 
     return fetch(url, {
         method: "POST",
@@ -240,11 +241,12 @@ export function updateProgramToServer(document: vscode.TextDocument) {
     });
 }
 
-export function updateProgramToServer2(path: string, code: string) {
+export function updateProgramToServer2(path: string, code: string, toRemove: boolean = false) {
     let url = getAPI("update");
     let body = new FormData();
     body.append("path", path);
     body.append("code", code);
+    body.append("remove", toRemove);
 
     return fetch(url, {
         method: "POST",
