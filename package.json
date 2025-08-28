@@ -1,11 +1,13 @@
 {
-  "name": "com-amlovey-omnishadertools-vsc",
+  "name": "amlovey-omnishader",
   "displayName": "OmniShaderTool For Unity",
   "description": "Visual Studio Code extension for Unity shader programming",
   "version": "0.0.1",
+  "publisher": "amlovey",
   "engines": {
     "vscode": "^1.103.0"
   },
+  "icon": "images/logo.png",
   "categories": [
     "Other"
   ],
