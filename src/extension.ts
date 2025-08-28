@@ -6,16 +6,21 @@ import { OSHoverInformationProvider } from './OmniShader/OSHoverInfomationProvid
 import { OSCompletionProvider } from './OmniShader/OSCompletionProvider';
 import { spawn } from 'child_process';
 import path from 'path';
-import fs, { existsSync, mkdirSync, rmSync } from 'fs';
-import { API_Port } from './OmniShader/SLSConnection';
+import fs, { existsSync, mkdirSync, rmSync, Stats } from 'fs';
+import { API_Port, updateProgramToServer, updateProgramToServer2 } from './OmniShader/SLSConnection';
 import { OSFindRenferencesProvider } from './OmniShader/OSFindReferencesProvider';
 import { OSRenameProvider } from './OmniShader/OSRenameProvider';
 import { OSSignatureHelpProvider } from './OmniShader/OSSignatureHelpProvider';
 import { OSFormatDocumentProvider } from './OmniShader/OSFormatDocumentProvider';
 import chokidar from 'chokidar';
+import { logger, getLocalDataFolder, log } from './OmniShader/Util';
 
 export function activate(context: vscode.ExtensionContext) {
+	logger.channel = vscode.window.createOutputChannel("OmniShader Unity", "log");
+	context.subscriptions.push(logger.channel);
+
 	startLanguageServer(context);
+	startFileWatcher(context);
 
 	let symbolProvider = new OSDocumentSymbolsProvider();
 	let symbolProviderDispose = vscode.languages.registerDocumentSymbolProvider(SHDAR_LANGUAGE_ID, symbolProvider);
@@ -54,6 +59,9 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.workspace.onDidChangeTextDocument(handleRealtimeCommentInput);
 }
 
+export function deactivate() { }
+
+
 function startLanguageServer(context: vscode.ExtensionContext) {
 	API_Port.value = generatePortAndCleanUnused();
 	let workspace = getWorkspaceFolder(context);
@@ -61,9 +69,19 @@ function startLanguageServer(context: vscode.ExtensionContext) {
 	let workingPath = path.join(context.extensionPath, "sls");
 	let slsExe = path.join(workingPath, "sls");
 
-	let slsProcess = spawn(slsExe, [API_Port.value, workspace], { stdio: 'inherit', cwd: workingPath });
-	slsProcess.on("data", console.log);
-	slsProcess.on("error", console.log);
+	let slsProcess = spawn(slsExe, [API_Port.value, workspace], { cwd: workingPath });
+	slsProcess.stdout?.on("data", data => {
+		logSLS(data);
+	});
+	slsProcess.stderr?.on("error", error => {
+		logSLS(error.message);
+	});
+
+	log(`Launching SLS at ${workspace}, port = ${API_Port.value}`);
+}
+
+function logSLS(msg: string) {
+	log(`SLS: ${msg}`);
 }
 
 function getWorkspaceFolder(context: vscode.ExtensionContext) {
@@ -75,12 +93,12 @@ function getWorkspaceFolder(context: vscode.ExtensionContext) {
 	return ".";
 }
 
-function ignoredMatcher(path: string, stats: fs.Stats | undefined) {
+function ignoredMatcher(path: string, stats?: fs.Stats): boolean{
 	if (stats && !stats.isFile()) {
-		return false;
+		return true;
 	}
 
-	for (let ext in SHADER_FIELS_EXTENSION) {
+	for (let ext of SHADER_FIELS_EXTENSION) {
 		if (path.endsWith(ext)) {
 			return false;
 		}
@@ -90,16 +108,31 @@ function ignoredMatcher(path: string, stats: fs.Stats | undefined) {
 }
 
 function startFileWatcher(context: vscode.ExtensionContext) {
-	let watcher = chokidar.watch(getWorkspaceFolder(context), {
-		ignored: ignoredMatcher,
-		persistent: true,
+	let workspace = getWorkspaceFolder(context);
+	log(`Start file watcher at ${workspace}...`);
+	let watcher = chokidar.watch(workspace, {
+		persistent: true
 	});
 
-	
-}
+	watcher.on("add", (path, stats) => {
+		if (ignoredMatcher(path, stats)) {
+			return;
+		}
 
-function getLocalDataFolder(): string {
-	return path.join(process.env.HOME || "~", "Library", "Application Support", "OmniShaderTools");
+		log("added " + path);
+		let code = fs.readFileSync(path, { encoding: 'utf8', flag: 'r' });
+		updateProgramToServer2(path, code);
+	});
+
+	watcher.on("unlink", (path, stats) => {
+		if (ignoredMatcher(path, stats)) {
+			return;
+		}
+
+		log("removed " + path);
+		updateProgramToServer2(path, "", true);
+	});
+
 }
 
 function getPortFile(port: string): string {
@@ -137,12 +170,8 @@ function generatePortAndCleanUnused(): string {
 	return newPort.toString();
 }
 
-export function deactivate() { }
-
-
-
 function handleRealtimeCommentInput(handleChange: any) {
-	if (!handleChange || !handleChange.contentChanges || handleChange.contentChanges.length != 1) {
+	if (!handleChange || !handleChange.contentChanges || handleChange.contentChanges.length !== 1) {
 		return;
 	}
 

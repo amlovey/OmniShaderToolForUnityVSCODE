@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { API_HOST } from './Constants';
+import { log } from './Util';
 
 export var API_Port = {
     value: "17892"
@@ -106,8 +107,9 @@ export function osLocationToRange(osLocation: OSLocation) {
     return new vscode.Range(osPointToPosition(osLocation.start), osPointToPosition(osLocation.end));
 }
 
-
 export async function fetchDocumentSymbols(document: vscode.TextDocument): Promise<OSSymbol[]> {
+    log(`Fetch Document Symbol: ${document.uri.fsPath}`);
+
     let body = new FormData();
     body.append("path", document.uri.fsPath);
 
@@ -120,6 +122,8 @@ export async function fetchDocumentSymbols(document: vscode.TextDocument): Promi
 }
 
 export async function fetchDefition(document: vscode.TextDocument, pos: vscode.Position): Promise<OSLocation> {
+    log(`Fetch Definition: ${document.uri.fsPath}, ${pos}`);
+
     let body = new FormData();
     body.append("path", document.uri.path);
     body.append("row", pos.line.toString());
@@ -139,6 +143,8 @@ export async function fetchDefition(document: vscode.TextDocument, pos: vscode.P
 }
 
 export async function fetchHover(document: vscode.TextDocument, pos: vscode.Position): Promise<OSHoverInfo> {
+    log(`Fetch Hover: ${document.uri.fsPath}, ${pos}`);
+
     let body = new FormData();
     body.append("path", document.uri.path);
     body.append("row", pos.line.toString());
@@ -158,6 +164,8 @@ export async function fetchHover(document: vscode.TextDocument, pos: vscode.Posi
 }
 
 export async function fetchCompletion(document: vscode.TextDocument, pos: vscode.Position, triggerCharacter: string = ""): Promise<OSCompletion[]> {
+    log(`Fetch Completions: ${document.uri.fsPath}, ${pos}`);
+
     let body = new FormData();
     body.append("path", document.uri.fsPath);
     body.append("row", pos.line);
@@ -173,6 +181,8 @@ export async function fetchCompletion(document: vscode.TextDocument, pos: vscode
 }
 
 export async function fetchReferences(document: vscode.TextDocument, pos: vscode.Position): Promise<OSLocation[]> {
+    log(`Fetch References: ${document.uri.fsPath}, ${pos}`);
+
     let body = new FormData();
     body.append("path", document.uri.fsPath);
     body.append("row", pos.line);
@@ -187,6 +197,8 @@ export async function fetchReferences(document: vscode.TextDocument, pos: vscode
 }
 
 export async function fetchRename(document: vscode.TextDocument, pos: vscode.Position): Promise<OSLocation[]> {
+    log(`Fetch Renames: ${document.uri.fsPath}, ${pos}`);
+
     let body = new FormData();
     body.append("path", document.uri.fsPath);
     body.append("row", pos.line);
@@ -201,6 +213,8 @@ export async function fetchRename(document: vscode.TextDocument, pos: vscode.Pos
 }
 
 export async function fetchSignature(document: vscode.TextDocument, pos: vscode.Position, trigger: string): Promise<OSSignatureHelp> {
+    log(`Fetch Signature: ${document.uri.fsPath}, ${pos}, trigger = ${trigger}`);
+
     let body = new FormData();
     body.append("path", document.uri.fsPath);
     body.append("row", pos.line);
@@ -216,6 +230,8 @@ export async function fetchSignature(document: vscode.TextDocument, pos: vscode.
 }
 
 export async function formatProgram(document: vscode.TextDocument): Promise<FormatData> {
+    log(`Format Document: ${document.uri.fsPath}`);
+
     let url = getAPI("format");
     let body = new FormData();
     body.append("code", document.getText());
@@ -229,6 +245,7 @@ export async function formatProgram(document: vscode.TextDocument): Promise<Form
 }
 
 export function updateProgramToServer(document: vscode.TextDocument, toRemove: boolean = false) {
+    log(`Update Program: ${document.uri.fsPath}, toRemove = ${toRemove}`);
     let url = getAPI("update");
     let body = new FormData();
     body.append("path", document.uri.fsPath);
@@ -242,6 +259,8 @@ export function updateProgramToServer(document: vscode.TextDocument, toRemove: b
 }
 
 export function updateProgramToServer2(path: string, code: string, toRemove: boolean = false) {
+    log(`Update Program: ${path}, toRemove = ${toRemove}`);
+
     let url = getAPI("update");
     let body = new FormData();
     body.append("path", path);
