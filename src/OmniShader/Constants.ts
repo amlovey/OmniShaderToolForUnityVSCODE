@@ -1,2 +1,13 @@
 export const SHDAR_LANGUAGE_ID = "UnityShader";
 export const API_HOST = "http://127.0.0.1";
+
+export const SHADER_FIELS_EXTENSION = [
+    ".shader",
+    ".glsl",
+    ".shader",
+    ".cginc",
+    ".compute",
+    ".hlsl",
+    ".raytrace",
+    ".std"
+];

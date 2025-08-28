@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { OSDocumentSymbolsProvider } from './OmniShader/OSDocumentSymbolsProvider';
 import { OSGoToDefinitionProvider } from './OmniShader/OSGoToDefinitionProvider';
-import { API_HOST, SHDAR_LANGUAGE_ID } from './OmniShader/Constants';
+import { API_HOST, SHADER_FIELS_EXTENSION, SHDAR_LANGUAGE_ID } from './OmniShader/Constants';
 import { OSHoverInformationProvider } from './OmniShader/OSHoverInfomationProvider';
 import { OSCompletionProvider } from './OmniShader/OSCompletionProvider';
 import { spawn } from 'child_process';
@@ -12,6 +12,7 @@ import { OSFindRenferencesProvider } from './OmniShader/OSFindReferencesProvider
 import { OSRenameProvider } from './OmniShader/OSRenameProvider';
 import { OSSignatureHelpProvider } from './OmniShader/OSSignatureHelpProvider';
 import { OSFormatDocumentProvider } from './OmniShader/OSFormatDocumentProvider';
+import chokidar from 'chokidar';
 
 export function activate(context: vscode.ExtensionContext) {
 	startLanguageServer(context);
@@ -55,11 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 function startLanguageServer(context: vscode.ExtensionContext) {
 	API_Port.value = generatePortAndCleanUnused();
-	let workspace = context.extensionPath;
-	let workspaceFolder = vscode.workspace.workspaceFolders;
-	if (workspaceFolder && workspaceFolder.length > 0) {
-		workspace = workspaceFolder[0].uri.fsPath;
-	}
+	let workspace = getWorkspaceFolder(context);
 
 	let workingPath = path.join(context.extensionPath, "sls");
 	let slsExe = path.join(workingPath, "sls");
@@ -67,6 +64,38 @@ function startLanguageServer(context: vscode.ExtensionContext) {
 	let slsProcess = spawn(slsExe, [API_Port.value, workspace], { stdio: 'inherit', cwd: workingPath });
 	slsProcess.on("data", console.log);
 	slsProcess.on("error", console.log);
+}
+
+function getWorkspaceFolder(context: vscode.ExtensionContext) {
+	let workspaceFolder = vscode.workspace.workspaceFolders;
+	if (workspaceFolder && workspaceFolder.length > 0) {
+		return workspaceFolder[0].uri.fsPath;
+	}
+
+	return ".";
+}
+
+function ignoredMatcher(path: string, stats: fs.Stats | undefined) {
+	if (stats && !stats.isFile()) {
+		return false;
+	}
+
+	for (let ext in SHADER_FIELS_EXTENSION) {
+		if (path.endsWith(ext)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function startFileWatcher(context: vscode.ExtensionContext) {
+	let watcher = chokidar.watch(getWorkspaceFolder(context), {
+		ignored: ignoredMatcher,
+		persistent: true,
+	});
+
+	
 }
 
 function getLocalDataFolder(): string {
@@ -110,32 +139,34 @@ function generatePortAndCleanUnused(): string {
 
 export function deactivate() { }
 
-function handleRealtimeCommentInput(handleChange: any) {
-    if (!handleChange || !handleChange.contentChanges || handleChange.contentChanges.length != 1) {
-        return;
-    }
 
-    let changeText: string = handleChange.contentChanges[0].text;
-    if (changeText.startsWith("\n") || changeText.startsWith("\r\n")) {
-        let changeRange: vscode.Range = handleChange.contentChanges[0].range;
-        let document: vscode.TextDocument = handleChange.document;
-        let oldLine = document.lineAt(changeRange.start);
-        var oldLineText = oldLine.text.trim();
-        if (oldLineText.startsWith("///")) {
-            let newLineNumber = oldLine.lineNumber + 1;
-            var newline = document.lineAt(newLineNumber);
-            var insertPosition = new vscode.Position(newline.lineNumber, newline.firstNonWhitespaceCharacterIndex);
-            var editor = vscode.window.activeTextEditor;
-            if (editor) {
-                editor.edit(builder => {
-                    builder.insert(insertPosition, "/// ");
-                }).then(()=> {
-                    let newPosition = new vscode.Position(newLineNumber, insertPosition.character + 4); 
+
+function handleRealtimeCommentInput(handleChange: any) {
+	if (!handleChange || !handleChange.contentChanges || handleChange.contentChanges.length != 1) {
+		return;
+	}
+
+	let changeText: string = handleChange.contentChanges[0].text;
+	if (changeText.startsWith("\n") || changeText.startsWith("\r\n")) {
+		let changeRange: vscode.Range = handleChange.contentChanges[0].range;
+		let document: vscode.TextDocument = handleChange.document;
+		let oldLine = document.lineAt(changeRange.start);
+		var oldLineText = oldLine.text.trim();
+		if (oldLineText.startsWith("///")) {
+			let newLineNumber = oldLine.lineNumber + 1;
+			var newline = document.lineAt(newLineNumber);
+			var insertPosition = new vscode.Position(newline.lineNumber, newline.firstNonWhitespaceCharacterIndex);
+			var editor = vscode.window.activeTextEditor;
+			if (editor) {
+				editor.edit(builder => {
+					builder.insert(insertPosition, "/// ");
+				}).then(() => {
+					let newPosition = new vscode.Position(newLineNumber, insertPosition.character + 4);
 					if (editor) {
 						editor.selection = new vscode.Selection(newPosition, newPosition);
 					}
-                });
-            }
-        }
-    }
+				});
+			}
+		}
+	}
 }
