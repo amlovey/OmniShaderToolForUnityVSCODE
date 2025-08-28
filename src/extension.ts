@@ -14,7 +14,7 @@ import { OSSignatureHelpProvider } from './OmniShader/OSSignatureHelpProvider';
 import { OSFormatDocumentProvider } from './OmniShader/OSFormatDocumentProvider';
 
 export function activate(context: vscode.ExtensionContext) {
-	// startLanguageServer(context);
+	startLanguageServer(context);
 
 	let symbolProvider = new OSDocumentSymbolsProvider();
 	let symbolProviderDispose = vscode.languages.registerDocumentSymbolProvider(SHDAR_LANGUAGE_ID, symbolProvider);
