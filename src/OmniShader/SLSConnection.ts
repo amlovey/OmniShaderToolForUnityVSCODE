@@ -56,6 +56,10 @@ export interface OSSignatureHelp {
     active_parameter: number,
 }
 
+export interface FormatData {
+    code: string
+}
+
 export function osKindToSymbolKind(osKind: string): vscode.SymbolKind {
     switch (osKind) {
         case "Class": return vscode.SymbolKind.Class;
@@ -211,11 +215,36 @@ export async function fetchSignature(document: vscode.TextDocument, pos: vscode.
     return await response.json() as OSSignatureHelp;
 }
 
+export async function formatProgram(document: vscode.TextDocument): Promise<FormatData> {
+    let url = getAPI("format");
+    let body = new FormData();
+    body.append("code", document.getText());
+
+    let response = await fetch(url, {
+        method: "POST",
+        body: body
+    });
+
+    return await response.json() as FormatData;
+}
+
 export function updateProgramToServer(document: vscode.TextDocument) {
     let url = getAPI("update");
     let body = new FormData();
     body.append("path", document.uri.fsPath);
     body.append("code", document.getText());
+
+    return fetch(url, {
+        method: "POST",
+        body: body
+    });
+}
+
+export function updateProgramToServer2(path: string, code: string) {
+    let url = getAPI("update");
+    let body = new FormData();
+    body.append("path", path);
+    body.append("code", code);
 
     return fetch(url, {
         method: "POST",

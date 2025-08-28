@@ -11,6 +11,7 @@ import { API_Port } from './OmniShader/SLSConnection';
 import { OSFindRenferencesProvider } from './OmniShader/OSFindReferencesProvider';
 import { OSRenameProvider } from './OmniShader/OSRenameProvider';
 import { OSSignatureHelpProvider } from './OmniShader/OSSignatureHelpProvider';
+import { OSFormatDocumentProvider } from './OmniShader/OSFormatDocumentProvider';
 
 export function activate(context: vscode.ExtensionContext) {
 	// startLanguageServer(context);
@@ -37,6 +38,9 @@ export function activate(context: vscode.ExtensionContext) {
 	let signatureHelpProvider = new OSSignatureHelpProvider();
 	let signatureHelpProviderDispose = vscode.languages.registerSignatureHelpProvider(SHDAR_LANGUAGE_ID, signatureHelpProvider, ",", "(", " ");
 
+	let formatDocumentProvider = new OSFormatDocumentProvider();
+	let formatDocumentProviderDispose = vscode.languages.registerDocumentFormattingEditProvider(SHDAR_LANGUAGE_ID, formatDocumentProvider);
+
 	context.subscriptions.push(symbolProviderDispose);
 	context.subscriptions.push(definitionProviderDispose);
 	context.subscriptions.push(hoverProviderDispose);
@@ -44,6 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(referenceProvoideDispose);
 	context.subscriptions.push(renameProviderDispose);
 	context.subscriptions.push(signatureHelpProviderDispose);
+	context.subscriptions.push(formatDocumentProviderDispose);
 
 	vscode.workspace.onDidChangeTextDocument(handleRealtimeCommentInput);
 }
