@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { formatProgram, updateProgramToServer, updateProgramToServer2 } from './SLSConnection';
+import { formatProgram, updateProgramToServer2 } from './SLSConnection';
 
 export class OSFormatDocumentProvider implements vscode.DocumentFormattingEditProvider {
     provideDocumentFormattingEdits(document: vscode.TextDocument, options: vscode.FormattingOptions, token: vscode.CancellationToken): vscode.ProviderResult<vscode.TextEdit[]> {

@@ -58,7 +58,9 @@ export interface OSSignatureHelp {
 }
 
 export interface FormatData {
-    code: string
+    code: string,
+    brace_on_new: boolean,
+    tab_size: number
 }
 
 export function osKindToSymbolKind(osKind: string): vscode.SymbolKind {
@@ -229,12 +231,14 @@ export async function fetchSignature(document: vscode.TextDocument, pos: vscode.
     return await response.json() as OSSignatureHelp;
 }
 
-export async function formatProgram(document: vscode.TextDocument): Promise<FormatData> {
+export async function formatProgram(document: vscode.TextDocument, braceOnNewLine: boolean = true, tabSize: number = 4): Promise<FormatData> {
     log(`Format Document: ${document.uri.fsPath}`);
 
     let url = getAPI("format");
     let body = new FormData();
     body.append("code", document.getText());
+    body.append("brace_on_new", braceOnNewLine);
+    body.append("tab_size", tabSize);
 
     let response = await fetch(url, {
         method: "POST",
